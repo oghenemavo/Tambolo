@@ -15,7 +15,7 @@ namespace Tambolo.Controllers
             _userRepository = userRepository;
         }
 
-        [HttpPost]
+        [HttpPost("signup")]
         public async Task<IActionResult> Signup(UserCreateDto model)
         {
             var result = await _userRepository.CreateAccountAsync(model);
@@ -24,6 +24,17 @@ namespace Tambolo.Controllers
                 return Ok(1);
             }
             return BadRequest();
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto model)
+        {
+            var result = await _userRepository.LoginAsync(model);
+            if (string.IsNullOrEmpty(result.token))
+            {
+                return BadRequest("Invalid Username or Password");
+            }
+            return Ok(result.token);
         }
     }
 }

@@ -15,6 +15,8 @@ namespace Tambolo.Data
             SeedRoles(builder);
         }
 
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+
         private void SeedRoles(ModelBuilder builder)
         {
             builder.Entity<IdentityRole>().HasData(
