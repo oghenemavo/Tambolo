@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tambolo.Dtos;
 using Tambolo.Repositories.IRepository;
@@ -36,5 +37,6 @@ namespace Tambolo.Controllers
             }
             return Ok(result.token);
         }
+
     }
 }
