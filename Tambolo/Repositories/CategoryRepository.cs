@@ -36,6 +36,7 @@ namespace Tambolo.Repositories
 
         public async Task UpdateAsync(Category category)
         {
+            category.UpdateDate = DateTime.UtcNow;
             _db.Categories.Update(category);
             await SaveAsync();
         }

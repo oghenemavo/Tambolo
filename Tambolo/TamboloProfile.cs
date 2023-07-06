@@ -10,6 +10,10 @@ namespace Tambolo
         {
             CreateMap<Category, CategoryResponse>().ReverseMap();
             CreateMap<CategoryRequest, Category>();
+
+            CreateMap<Product, ProductResponse>().ReverseMap();
+            CreateMap<ProductRequest, Product>();
+            CreateMap<ProductUpdateRequest, Product>();
         }
     }
 }
