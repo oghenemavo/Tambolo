@@ -32,5 +32,7 @@ namespace Tambolo.Models
         public bool IsActive { get; set; } = false;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime UpdateDate { get; set; } = DateTime.Now;
+
+        public ICollection<Order> Orders { get; } = new List<Order>();
     }
 }

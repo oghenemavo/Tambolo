@@ -20,11 +20,18 @@ namespace Tambolo.Data
                 .WithOne(c => c.Category)
                 .HasForeignKey(c => c.CategoryId)
                 .IsRequired();
+
+            builder.Entity<Product>()
+                .HasMany(c => c.Orders)
+                .WithOne(c => c.Product)
+                .HasForeignKey(c => c.ProductId)
+                .IsRequired();
         }
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
 
         private void SeedRoles(ModelBuilder builder)
         {
