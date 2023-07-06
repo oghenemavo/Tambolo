@@ -1,8 +1,10 @@
-﻿namespace Tambolo.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Tambolo.Dtos
 {
     public class CategoryRequest
     {
-        public string Title { get; set; }
-        public string Slug { get; set; }
+        [Required] public string Title { get; set; }
+        [Required] public string Slug { get; set; }
     }
 }

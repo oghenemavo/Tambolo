@@ -23,6 +23,8 @@ namespace Tambolo.Controllers
         }
          
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TamboloResponse>> Get()
         {
             try
@@ -43,11 +45,23 @@ namespace Tambolo.Controllers
         }
 
         [HttpGet("{categoryId:int}", Name = "GetCategoryById")]
-        public async Task<ActionResult<TamboloResponse>> Get(int categoryId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TamboloResponse>> Get([FromRoute] int categoryId)
         {
             try
             {
                 var category = await _categoryRepository.FetchAsync(categoryId);
+
+                if (categoryId < 1)
+                {
+                    _response.Status = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.Message = new List<string> { "Invalid Category Id" };
+                    return BadRequest(_response);
+                }
 
                 if (category == null)
                 {
@@ -71,7 +85,9 @@ namespace Tambolo.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<TamboloResponse>> Post(CategoryRequest request)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TamboloResponse>> Post([FromBody] CategoryRequest request)
         {
             try
             {
@@ -94,7 +110,9 @@ namespace Tambolo.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult<TamboloResponse>> Put(CategoryResponse request)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TamboloResponse>> Put([FromBody] CategoryResponse request)
         {
             try
             {
@@ -115,7 +133,10 @@ namespace Tambolo.Controllers
         }
 
         [HttpDelete("{categoryId:int}")]
-        public async Task<ActionResult<TamboloResponse>> Delete(int categoryId)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TamboloResponse>> Delete([FromRoute] int categoryId)
         {
             try
             {
@@ -124,6 +145,7 @@ namespace Tambolo.Controllers
                 if (!isDeleted)
                 {
                     _response.Status = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
                     _response.Message = new List<string> { "Category not found!" };
                     return NotFound(_response);
                 }
