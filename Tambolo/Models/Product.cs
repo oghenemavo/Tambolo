@@ -35,5 +35,6 @@ namespace Tambolo.Models
 
         public ICollection<Order> Orders { get; } = new List<Order>();
         public ICollection<Cart> Carts { get; } = new List<Cart>();
+        public ICollection<Coupon> Coupons { get; } = new List<Coupon>();
     }
 }
