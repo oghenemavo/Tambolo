@@ -18,6 +18,9 @@ namespace Tambolo
             CreateMap<Order, OrderResponse>().ReverseMap();
             CreateMap<OrderRequest, Order>();
             CreateMap<OrderUpdateRequest, Order>();
+
+            CreateMap<Cart, CartResponse>().ReverseMap();
+            CreateMap<CartRequest, Cart>();
         }
     }
 }

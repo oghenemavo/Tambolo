@@ -34,5 +34,6 @@ namespace Tambolo.Models
         public DateTime UpdateDate { get; set; } = DateTime.Now;
 
         public ICollection<Order> Orders { get; } = new List<Order>();
+        public ICollection<CartResponse> Carts { get; } = new List<CartResponse>();
     }
 }

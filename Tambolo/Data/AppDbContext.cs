@@ -32,6 +32,7 @@ namespace Tambolo.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
+        public DbSet<Cart> Carts { get; set; }
 
         private void SeedRoles(ModelBuilder builder)
         {
@@ -53,6 +54,12 @@ namespace Tambolo.Data
                     Name = "User",
                     NormalizedName = "USER",
                     ConcurrencyStamp = "3",
+                },
+                new IdentityRole()
+                {
+                    Name = "Vendor",
+                    NormalizedName = "VENDOR",
+                    ConcurrencyStamp = "4",
                 }
             );
         }
