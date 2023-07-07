@@ -30,8 +30,8 @@ namespace Tambolo.Controllers
             {
                 IEnumerable<Cart> carts = await _cartRepository.FetchAllAsync();
 
-                _response.Data = _mapper.Map<CartResponse>(carts);
-                _response.Message = new List<string> { "Carts Retrieved Successfully!" };
+                _response.Data = _mapper.Map<IEnumerable<CartResponse>>(carts);
+                _response.Message = new List<string> { "Carts retrieved successfully!" };
             }
             catch (Exception ex)
             {
@@ -49,8 +49,16 @@ namespace Tambolo.Controllers
             {
                 Cart cart = await _cartRepository.FetchAsync(c => c.Id == cartId);
 
+                if (cart == null)
+                {
+                    _response.Status = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Message = new List<string> { "Cart not found" };
+                    return NotFound(_response);
+                }
+
                 _response.Data = _mapper.Map<CartResponse>(cart);
-                _response.Message = new List<string> { "Cart Retrieved Successfully!" };
+                _response.Message = new List<string> { "Cart retrieved successfully!" };
             }
             catch (Exception ex)
             {
@@ -71,7 +79,7 @@ namespace Tambolo.Controllers
 
                 _response.Status = HttpStatusCode.Created;
                 _response.Data = _mapper.Map<CartResponse>(cart);
-                _response.Message = new List<string> { "Cart Created Successfully!" };
+                _response.Message = new List<string> { "Cart created successfully!" };
             }
             catch (Exception ex)
             {
@@ -88,11 +96,37 @@ namespace Tambolo.Controllers
             try
             {
                 Cart cart = _mapper.Map<Cart>(request);
-                await _cartRepository.CreateAsync(cart);
+                await _cartRepository.UpdateAsync(cart);
 
-                _response.Status = HttpStatusCode.Created;
-                _response.Data = _mapper.Map<CartResponse>(cart);
-                _response.Message = new List<string> { "Cart Created Successfully!" };
+                _response.Status = HttpStatusCode.NoContent;
+                _response.Message = new List<string> { "Cart updated successfully!" };
+            }
+            catch (Exception ex)
+            {
+                _response.Status = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Message = new List<string> { ex.Message };
+            }
+            return _response;
+        }
+
+        [HttpDelete("{cartId:int}")]
+        public async Task<ActionResult<TamboloResponse>> Delete(int cartId)
+        {
+            try
+            {
+                bool isDeleted = await _cartRepository.RemoveAsync(cartId);
+
+                if (!isDeleted)
+                {
+                    _response.Status = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Message = new List<string> { "Cart not found" };
+                    return NotFound(_response);
+                }
+
+                _response.Status = HttpStatusCode.NoContent;
+                _response.Message = new List<string> { "Cart deleted successfully!" };
             }
             catch (Exception ex)
             {
