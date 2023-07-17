@@ -6,6 +6,7 @@ namespace Tambolo.Dtos
     public class ProductResponse
     {
         public int Id { get; set; }
+        public string UserId { get; set; }
         public int CategoryId { get; set; }
         public string Name { get; set; }
         public string Slug { get; set; }

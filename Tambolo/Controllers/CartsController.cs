@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Tambolo.Dtos;
 using Tambolo.Models;
@@ -42,43 +45,56 @@ namespace Tambolo.Controllers
             return _response;
         }
 
-        [HttpGet("{cartId:int}", Name = "GetCartById")]
-        public async Task<ActionResult<TamboloResponse>> Get(int cartId)
-        {
-            try
-            {
-                Cart cart = await _cartRepository.FetchAsync(c => c.Id == cartId);
+        //[HttpGet("{cartId:int}", Name = "GetCartById")]
+        //public async Task<ActionResult<TamboloResponse>> Get(int cartId)
+        //{
+        //    try
+        //    {
+        //        Cart cart = await _cartRepository.FetchAsync(c => c.Id == cartId);
 
-                if (cart == null)
-                {
-                    _response.Status = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.Message = new List<string> { "Cart not found" };
-                    return NotFound(_response);
-                }
+        //        if (cart == null)
+        //        {
+        //            _response.Status = HttpStatusCode.NotFound;
+        //            _response.IsSuccess = false;
+        //            _response.Message = new List<string> { "Cart not found" };
+        //            return NotFound(_response);
+        //        }
 
-                _response.Data = _mapper.Map<CartResponse>(cart);
-                _response.Message = new List<string> { "Cart retrieved successfully!" };
-            }
-            catch (Exception ex)
-            {
-                _response.Status = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.Message = new List<string> { ex.Message };
-            }
-            return _response;
-        }
+        //        _response.Data = _mapper.Map<CartResponse>(cart);
+        //        _response.Message = new List<string> { "Cart retrieved successfully!" };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _response.Status = HttpStatusCode.InternalServerError;
+        //        _response.IsSuccess = false;
+        //        _response.Message = new List<string> { ex.Message };
+        //    }
+        //    return _response;
+        //}
 
+        //[Authorize(Roles = "User")]
         [HttpPost]
-        public async Task<ActionResult<TamboloResponse>> Post(CartRequest request)
+        public async Task<ActionResult<TamboloResponse>> Post(CartRequest model)
         {
             try
             {
-                Cart cart = _mapper.Map<Cart>(request);
-                await _cartRepository.CreateAsync(cart);
+                //string authHeader = Request.Headers["Authorization"];
+                //authHeader = authHeader.Replace("Bearer ", "");
+
+                //var handler = new JwtSecurityTokenHandler();
+                //var jsonToken = handler.ReadToken(authHeader);
+                //var tokenS = handler.ReadToken(authHeader) as JwtSecurityToken;
+                //var userId = tokenS.Claims.First(claim => claim.Type == "nameid").Value;
+
+                var userId = "10a0d54f-5738-4535-a830-e9339a71b8ed";
+                model.UserId = userId;
+
+                // add to cart
+                await _cartRepository.CreateAsync(model);
 
                 _response.Status = HttpStatusCode.Created;
-                _response.Data = _mapper.Map<CartResponse>(cart);
+                //_response.Data = null;
+                _response.Data = _mapper.Map<CartResponse>(model);
                 _response.Message = new List<string> { "Cart created successfully!" };
             }
             catch (Exception ex)
@@ -110,12 +126,59 @@ namespace Tambolo.Controllers
             return _response;
         }
 
-        [HttpDelete("{cartId:int}")]
-        public async Task<ActionResult<TamboloResponse>> Delete(int cartId)
+        //[Authorize(Roles = "User")]
+        [HttpDelete("{cartItemId:int}")]
+        public async Task<ActionResult<TamboloResponse>> Delete(int cartItemId)
         {
             try
             {
-                bool isDeleted = await _cartRepository.RemoveAsync(cartId);
+                //string authHeader = Request.Headers["Authorization"];
+                //authHeader = authHeader.Replace("Bearer ", "");
+
+                //var handler = new JwtSecurityTokenHandler();
+                //var jsonToken = handler.ReadToken(authHeader);
+                //var tokenS = handler.ReadToken(authHeader) as JwtSecurityToken;
+                //var userId = tokenS.Claims.First(claim => claim.Type == "nameid").Value;
+
+                var userId = "10a0d54f-5738-4535-a830-e9339a71b8ed";
+
+                bool isDeleted = await _cartRepository.RemoveCartItemAsync(userId, cartItemId);
+
+                if (!isDeleted)
+                {
+                    _response.Status = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Message = new List<string> { "Cart Item not found" };
+                    return NotFound(_response);
+                }
+
+                _response.Status = HttpStatusCode.NoContent;
+                _response.Message = new List<string> { "Cart Item deleted successfully!" };
+            }
+            catch (Exception ex)
+            {
+                _response.Status = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Message = new List<string> { ex.Message };
+            }
+            return _response;
+        }
+
+        [Authorize(Roles = "User")]
+        [HttpDelete]
+        public async Task<ActionResult<TamboloResponse>> Delete()
+        {
+            try
+            {
+                string authHeader = Request.Headers["Authorization"];
+                authHeader = authHeader.Replace("Bearer ", "");
+
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(authHeader);
+                var tokenS = handler.ReadToken(authHeader) as JwtSecurityToken;
+                var userId = tokenS.Claims.First(claim => claim.Type == "nameid").Value;
+
+                bool isDeleted = await _cartRepository.EmptyCartAsync(userId);
 
                 if (!isDeleted)
                 {

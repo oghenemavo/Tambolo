@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Tambolo.Dtos;
 using Tambolo.Models;
@@ -71,12 +73,23 @@ namespace Tambolo.Controllers
             return _response;
         }
 
+        [Authorize(Roles = "Vendor")]
         [HttpPost]
-        public async Task<ActionResult<TamboloResponse>> Post([FromBody] ProductRequest request)
+        public async Task<ActionResult<TamboloResponse>> Post([FromBody] ProductRequest model)
         {
             try
             {
-                var product = _mapper.Map<Product>(request);
+                string authHeader = Request.Headers["Authorization"];
+                authHeader = authHeader.Replace("Bearer ", "");
+
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(authHeader);
+                var tokenS = handler.ReadToken(authHeader) as JwtSecurityToken;
+                var userId = tokenS.Claims.First(claim => claim.Type == "nameid").Value;
+
+                // set user id
+                model.UserId = userId;
+                var product = _mapper.Map<Product>(model);
                 await _productRepository.CreateAsync(product);
 
                 _response.Status = HttpStatusCode.Created;
@@ -94,6 +107,7 @@ namespace Tambolo.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Vendor")]
         public async Task<ActionResult<TamboloResponse>> Put([FromBody] ProductUpdateRequest request)
         {
             try
@@ -115,6 +129,7 @@ namespace Tambolo.Controllers
         }
 
         [HttpDelete("{productId:int}")]
+        [Authorize(Roles = "Vendor")]
         public async Task<ActionResult<TamboloResponse>> Delete([FromRoute] int productId)
         {
             try

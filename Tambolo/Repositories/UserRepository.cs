@@ -40,7 +40,14 @@ namespace Tambolo.Repositories
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "Super Admin");
+                var defaultRole = "User";
+                var roleExists = await _roleManager.RoleExistsAsync(model.Role);
+                if (roleExists)
+                {
+                    defaultRole = model.Role;
+                }
+
+                await _userManager.AddToRoleAsync(user, defaultRole);
                 return true;
             }
             return false;
@@ -69,7 +76,9 @@ namespace Tambolo.Repositories
             {
                 Subject = new ClaimsIdentity(new Claim[] 
                 {
-                    new Claim(ClaimTypes.UserData, user.FirstName + "" + user.LastName),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Surname, user.LastName),
+                    //new Claim(ClaimTypes.UserData, user.FirstName + "" + user.LastName),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(ClaimTypes.Role, roles.FirstOrDefault()),
