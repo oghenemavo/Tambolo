@@ -7,14 +7,12 @@ namespace Tambolo.Repositories.IRepository
     public interface ICartRepository
     {
         Task<IEnumerable<Cart>> FetchAllAsync(Expression<Func<Cart, bool>> filter = null);
-        Task<CartHeader> FetchAsync(Expression<Func<CartHeader, bool>> filter);
-        //Task<Cart> FetchAsync(Expression<Func<Cart, bool>> filter);
-        Task CreateAsync(CartRequest cartRequest);
-        Task AddToCartAsync(Cart cart);
+        Task<Cart> FetchAsync(Expression<Func<Cart, bool>> filter);
+        Task AddToCartAsync(Cart cartEntity);
         Task UpdateAsync(Cart cart);
-        Task<bool> RemoveCartItemAsync(string userId, int cartItemId);
-        Task<bool> RemoveAsync(int cartId);
+        Task<bool> RemoveAsync(string userId, int cartItemId);
         Task<bool> EmptyCartAsync(string userId);
+        Task<bool> ApplyCouponAsync(string userId, string couponCode);
         Task SaveAsync();
     }
 }

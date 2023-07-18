@@ -34,16 +34,16 @@ namespace Tambolo.Data
                 .IsRequired();
 
             builder.Entity<ApplicationUser>()
-                .HasOne(u => u.CartHeaders)
+                .HasMany(u => u.Carts)
                 .WithOne(u => u.ApplicationUser)
-                .HasForeignKey<CartHeader>(c => c.UserId)
+                .HasForeignKey(u => u.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.Entity<CartHeader>()
-                .HasMany(c => c.Carts)
-                .WithOne(c => c.CartHeader)
-                .HasForeignKey(c => c.CartHeaderId)
-                .OnDelete(DeleteBehavior.NoAction);
+            //builder.Entity<CartHeader>()
+            //    .HasMany(c => c.Carts)
+            //    .WithOne(c => c.CartHeader)
+            //    .HasForeignKey(c => c.CartHeaderId)
+            //    .OnDelete(DeleteBehavior.NoAction);
         }
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
@@ -52,7 +52,6 @@ namespace Tambolo.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Coupon> Coupons { get; set; }
-        public DbSet<CartHeader> CartHeaders { get; set; }
 
         private void SeedRoles(ModelBuilder builder)
         {

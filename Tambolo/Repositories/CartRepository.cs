@@ -20,28 +20,25 @@ namespace Tambolo.Repositories
             _mapper = mapper;
         }
 
-        public async Task CreateAsync(CartRequest cartRequest)
+        public async Task AddToCartAsync(Cart cartEntity)
         {
-            var cart = await FetchAsync(cH => cH.UserId == cartRequest.UserId);
-            var cartItem = _mapper.Map<Cart>(cartRequest);
-            if (cart == null)
-            {
-                // TODO: setup db transactions
+            var cartItem = await FetchAsync(c => c.UserId == cartEntity.UserId && c.ProductId == cartEntity.ProductId);
 
-                // create cart header
-                var cartHeader = _mapper.Map<CartHeader>(cartRequest);
-                await _db.CartHeaders.AddAsync(cartHeader);
-                await SaveAsync();
-
-                // add item
-                cartItem.CartHeaderId = cartHeader.Id;
-                await AddToCartAsync(cartItem);
-            }
-            else
+            if (cartEntity.Quantity > 0 && cartItem == null) 
             {
-                cartItem.CartHeaderId = cart.Id;
-                await AddToCartAsync(cartItem);
+                await _db.Carts.AddAsync(cartEntity);
+            } 
+            else if (cartEntity.Quantity > 0 && cartItem != null)
+            {
+                cartItem.Quantity = cartEntity.Quantity;
+                cartItem.UpdatedDate = DateTime.Now;
+                _db.Carts.Update(cartItem);
             }
+            else if (cartEntity.Quantity < 1 && cartItem != null)
+            {
+                _db.Carts.Remove(cartItem);
+            }
+            await SaveAsync();
         }
 
         public async Task<IEnumerable<Cart>> FetchAllAsync(Expression<Func<Cart, bool>> filter = null)
@@ -54,40 +51,36 @@ namespace Tambolo.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<CartHeader> FetchAsync(Expression<Func<CartHeader, bool>> filter)
+        public async Task<Cart?> FetchAsync(Expression<Func<Cart, bool>> filter)
         {
-            return await _db.CartHeaders.FirstOrDefaultAsync(filter);
+            return await _db.Carts.FirstOrDefaultAsync(filter);
         }
 
         public async Task<bool> EmptyCartAsync(string userId)
-        { 
-            var cartHeader = await FetchAsync(ch => ch.UserId == userId);
-            if (cartHeader != null)
+        {
+            var cartItems = await FetchAllAsync(c => c.UserId == userId);
+            if (cartItems != null)
             {
-                var cartItems = await _db.Carts.Where(c => c.CartHeaderId == cartHeader.Id).ToListAsync();
                 foreach (var cartItem in cartItems)
                 {
                     // remove cart items
                     _db.Carts.Remove(cartItem);
                     await SaveAsync();
                 }
-
-                // remove cartheader
-                _db.CartHeaders.Remove(cartHeader);
                 await SaveAsync();
                 return true;
             }
             return false;
         }
 
-        public async Task<bool> RemoveAsync(int cartId)
+        public async Task<bool> RemoveAsync(string userId, int cartItemId)
         {
-            var cart = await _db.Carts.FirstOrDefaultAsync(c => c.Id == cartId);
-            if (cart == null)
+            var cartItem = await _db.Carts.FirstOrDefaultAsync(c => c.UserId == userId && c.Id == cartItemId);
+            if (cartItem == null)
             {
                 return false;
             }
-            _db.Carts.Remove(cart);
+            _db.Carts.Remove(cartItem);
             await SaveAsync();
             return true;
         }
@@ -104,60 +97,39 @@ namespace Tambolo.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task AddToCartAsync(Cart cart)
+        public async Task<bool> ApplyCouponAsync(string userId, string couponCode)
         {
-            var cartItem = await _db.Carts.FirstOrDefaultAsync(c => c.CartHeaderId == cart.CartHeaderId && c.ProductId == cart.ProductId);
-            // check items exists in cart
-            if (cartItem == null) 
-            {
-                await _db.Carts.AddAsync(cart);
-            }
-            else
-            {
-                if (cart.Quantity < 1)
-                {
-                    // remove
-                    await RemoveAsync(cartItem.Id);
-                }
-                else
-                {
-                    cartItem.Quantity = cart.Quantity;
-                    cartItem.UpdatedDate = DateTime.UtcNow;
-                    _db.Carts.Update(cartItem);
-                }
-            }
-            await SaveAsync();
-        }
+            //var cartHeader = await FetchAsync(ch => ch.UserId == userId);
+            //double total = 0;
+            //double discount = 0;
 
-        public async Task<bool> RemoveCartItemAsync(string userId, int cartItemId)
-        {
-            var cartHeader = await FetchAsync(ch => ch.UserId == userId);
-            if (cartHeader != null)
-            {
-                var cartItems = await _db.Carts.Where(ci => ci.CartHeaderId == cartHeader.Id).ToListAsync();
-                var count = cartItems.Count;
-                //var cartItem = await _db.Carts.Where(ci => ci.CartHeaderId == cartHeader.Id && ci.Id == cartItemId).FirstOrDefaultAsync();
-                if (cartItems != null)
-                {
-                    foreach (var cartItem in cartItems)
-                    {
-                        if (cartItem.Id == cartItemId) 
-                        {
-                            // remove cart items
-                            _db.Carts.Remove(cartItem);
-                            await SaveAsync();
+            //if (cartHeader != null)
+            //{
+            //    var coupon = await _db.Coupons.FirstOrDefaultAsync(c => c.Code == couponCode);
+            //    if (coupon != null) 
+            //    {
+            //        // TODO: check coupon date is valid & coupon used time is valid
+            //        foreach (var item in cartHeader.Carts)
+            //        {
+            //            total += item.Product.Amount * item.Quantity;
+            //        }
 
-                            if (count < 2) 
-                            {
-                                // remove cartheader
-                                _db.CartHeaders.Remove(cartHeader);
-                                await SaveAsync();
-                            }
-                            return true;
-                        }
-                    }
-                }
-            }
+            //        if (coupon.Type == Coupon.CouponType.Percentage)
+            //        {
+            //            discount = (coupon.CoupleValue / 100) * total;
+            //        }
+            //        else
+            //        {
+            //            if (coupon.CoupleValue <= total)
+            //            {
+            //                discount = total - coupon.CoupleValue;
+            //            }
+            //        }
+
+            //        return true;
+            //    }
+            //}
+
             return false;
         }
     }

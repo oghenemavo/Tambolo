@@ -7,18 +7,13 @@ namespace Tambolo.Models
     {
         public int Id { get; set; }
 
-        public int CartHeaderId { get; set; }
-        public CartHeader CartHeader { get; set; } = null!;
+        public string UserId { get; set; }
+        public ApplicationUser ApplicationUser { get; set; } = null!;
 
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;
 
-
         public int Quantity { get; set; }
-
-        [NotMapped]
-        public ProductResponse ProductInfo { get; set; }
-
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime UpdatedDate { get; set; } = DateTime.Now;
     }

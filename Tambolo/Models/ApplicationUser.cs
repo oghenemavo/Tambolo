@@ -9,7 +9,6 @@ namespace Tambolo.Models
         public string LastName { get; set; }
 
         public ICollection<Product> Products { get; } = new List<Product>();
-        // one to one
-        public CartHeader CartHeaders { get; set; }
+        public ICollection<Cart> Carts { get; } = new List<Cart>();
     }
 }

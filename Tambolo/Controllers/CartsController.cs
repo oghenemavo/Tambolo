@@ -31,9 +31,19 @@ namespace Tambolo.Controllers
         {
             try
             {
-                IEnumerable<Cart> carts = await _cartRepository.FetchAllAsync();
+                //string authHeader = Request.Headers["Authorization"];
+                //authHeader = authHeader.Replace("Bearer ", "");
 
-                _response.Data = _mapper.Map<IEnumerable<CartResponse>>(carts);
+                //var handler = new JwtSecurityTokenHandler();
+                //var jsonToken = handler.ReadToken(authHeader);
+                //var tokenS = handler.ReadToken(authHeader) as JwtSecurityToken;
+                //var userId = tokenS.Claims.First(claim => claim.Type == "nameid").Value;
+
+                var userId = "10a0d54f-5738-4535-a830-e9339a71b8ed";
+
+                IEnumerable<Cart> cart = await _cartRepository.FetchAllAsync(c => c.UserId == userId);
+
+                _response.Data = _mapper.Map<IEnumerable<CartResponse>>(cart);
                 _response.Message = new List<string> { "Carts retrieved successfully!" };
             }
             catch (Exception ex)
@@ -89,8 +99,9 @@ namespace Tambolo.Controllers
                 var userId = "10a0d54f-5738-4535-a830-e9339a71b8ed";
                 model.UserId = userId;
 
+                var cartItem = _mapper.Map<Cart>(model);
                 // add to cart
-                await _cartRepository.CreateAsync(model);
+                await _cartRepository.AddToCartAsync(cartItem);
 
                 _response.Status = HttpStatusCode.Created;
                 //_response.Data = null;
@@ -106,25 +117,25 @@ namespace Tambolo.Controllers
             return _response;
         }
 
-        [HttpPut]
-        public async Task<ActionResult<TamboloResponse>> Put(CartUpdateRequest request)
-        {
-            try
-            {
-                Cart cart = _mapper.Map<Cart>(request);
-                await _cartRepository.UpdateAsync(cart);
+        //[HttpPut]
+        //public async Task<ActionResult<TamboloResponse>> Put(CartUpdateRequest request)
+        //{
+        //    try
+        //    {
+        //        Cart cart = _mapper.Map<Cart>(request);
+        //        await _cartRepository.UpdateAsync(cart);
 
-                _response.Status = HttpStatusCode.NoContent;
-                _response.Message = new List<string> { "Cart updated successfully!" };
-            }
-            catch (Exception ex)
-            {
-                _response.Status = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.Message = new List<string> { ex.Message };
-            }
-            return _response;
-        }
+        //        _response.Status = HttpStatusCode.NoContent;
+        //        _response.Message = new List<string> { "Cart updated successfully!" };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _response.Status = HttpStatusCode.InternalServerError;
+        //        _response.IsSuccess = false;
+        //        _response.Message = new List<string> { ex.Message };
+        //    }
+        //    return _response;
+        //}
 
         //[Authorize(Roles = "User")]
         [HttpDelete("{cartItemId:int}")]
@@ -142,7 +153,7 @@ namespace Tambolo.Controllers
 
                 var userId = "10a0d54f-5738-4535-a830-e9339a71b8ed";
 
-                bool isDeleted = await _cartRepository.RemoveCartItemAsync(userId, cartItemId);
+                bool isDeleted = await _cartRepository.RemoveAsync(userId, cartItemId);
 
                 if (!isDeleted)
                 {
@@ -190,6 +201,44 @@ namespace Tambolo.Controllers
 
                 _response.Status = HttpStatusCode.NoContent;
                 _response.Message = new List<string> { "Cart deleted successfully!" };
+            }
+            catch (Exception ex)
+            {
+                _response.Status = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.Message = new List<string> { ex.Message };
+            }
+            return _response;
+        }
+
+        //[Authorize(Roles = "User")]
+        [HttpPost("ApplyCoupon/{code}")]
+        public async Task<ActionResult<TamboloResponse>> ApplyCoupon(string code)
+        {
+            try
+            {
+                //string authHeader = Request.Headers["Authorization"];
+                //authHeader = authHeader.Replace("Bearer ", "");
+
+                //var handler = new JwtSecurityTokenHandler();
+                //var jsonToken = handler.ReadToken(authHeader);
+                //var tokenS = handler.ReadToken(authHeader) as JwtSecurityToken;
+                //var userId = tokenS.Claims.First(claim => claim.Type == "nameid").Value;
+
+                var userId = "10a0d54f-5738-4535-a830-e9339a71b8ed";
+
+                bool isDeleted = await _cartRepository.ApplyCouponAsync(userId, code);
+
+                if (!isDeleted)
+                {
+                    _response.Status = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.Message = new List<string> { "Cart Item not found" };
+                    return NotFound(_response);
+                }
+
+                _response.Status = HttpStatusCode.NoContent;
+                _response.Message = new List<string> { "Cart Item deleted successfully!" };
             }
             catch (Exception ex)
             {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tambolo.Data;
 
@@ -11,9 +12,11 @@ using Tambolo.Data;
 namespace Tambolo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230717102538_AddFeatureToColCouponCodeCartHeader")]
+    partial class AddFeatureToColCouponCodeCartHeader
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,28 +54,28 @@ namespace Tambolo.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "6e48034d-64b3-4bd2-bfa1-46cc4f41475d",
+                            Id = "96dbcbf6-d35a-4982-a8bd-d7e780479d3a",
                             ConcurrencyStamp = "1",
                             Name = "Super Admin",
                             NormalizedName = "SUPER ADMIN"
                         },
                         new
                         {
-                            Id = "5651be10-a78d-4a58-bf6e-9a9cfc7d9664",
+                            Id = "50ca68e5-7a1c-4e82-80b5-e479b2baab11",
                             ConcurrencyStamp = "2",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "699e334c-5575-4937-8222-8057321edb95",
+                            Id = "73c21c0b-8724-4e28-a2d8-e687ecdb1061",
                             ConcurrencyStamp = "3",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
-                            Id = "23920ca5-cfe2-43c4-80d3-cbbde648cc76",
+                            Id = "a78c0f66-c7a2-4f30-bc38-ec8fa695f383",
                             ConcurrencyStamp = "4",
                             Name = "Vendor",
                             NormalizedName = "VENDOR"
@@ -266,6 +269,9 @@ namespace Tambolo.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CartHeaderId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -278,17 +284,42 @@ namespace Tambolo.Migrations
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime2");
 
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartHeaderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("Tambolo.Models.CartHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CouponCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Carts");
+                    b.ToTable("CartHeaders");
                 });
 
             modelBuilder.Entity("Tambolo.Models.Category", b =>
@@ -526,21 +557,32 @@ namespace Tambolo.Migrations
 
             modelBuilder.Entity("Tambolo.Models.Cart", b =>
                 {
+                    b.HasOne("Tambolo.Models.CartHeader", "CartHeader")
+                        .WithMany("Carts")
+                        .HasForeignKey("CartHeaderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("Tambolo.Models.Product", "Product")
                         .WithMany("Carts")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("CartHeader");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Tambolo.Models.CartHeader", b =>
+                {
                     b.HasOne("Tambolo.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany("Carts")
-                        .HasForeignKey("UserId")
+                        .WithOne("CartHeaders")
+                        .HasForeignKey("Tambolo.Models.CartHeader", "UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Tambolo.Models.Coupon", b =>
@@ -584,9 +626,15 @@ namespace Tambolo.Migrations
 
             modelBuilder.Entity("Tambolo.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("Carts");
+                    b.Navigation("CartHeaders")
+                        .IsRequired();
 
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Tambolo.Models.CartHeader", b =>
+                {
+                    b.Navigation("Carts");
                 });
 
             modelBuilder.Entity("Tambolo.Models.Category", b =>

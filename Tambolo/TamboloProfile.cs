@@ -28,7 +28,8 @@ namespace Tambolo
             CreateMap<CouponRequest, Coupon>();
             CreateMap<CouponUpdateRequest, Coupon>();
 
-            CreateMap<CartRequest, CartHeader>();
+            //CreateMap<CartRequest, CartHeader>();
+            //CreateMap<CartHeader, CartHeaderResponse>();
         }
     }
 }
