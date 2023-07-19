@@ -12,7 +12,7 @@ namespace Tambolo.Repositories.IRepository
         Task UpdateAsync(Cart cart);
         Task<bool> RemoveAsync(string userId, int cartItemId);
         Task<bool> EmptyCartAsync(string userId);
-        Task<bool> ApplyCouponAsync(string userId, string couponCode);
+        Task<dynamic> ApplyCouponAsync(string userId, string couponCode);
         Task SaveAsync();
     }
 }

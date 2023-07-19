@@ -48,7 +48,7 @@ namespace Tambolo.Repositories
             {
                 query = query.Where(filter);
             }
-            return await query.ToListAsync();
+            return await query.Include(c => c.Product).ToListAsync();
         }
 
         public async Task<Cart?> FetchAsync(Expression<Func<Cart, bool>> filter)
@@ -97,40 +97,39 @@ namespace Tambolo.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> ApplyCouponAsync(string userId, string couponCode)
+        public async Task<object> ApplyCouponAsync(string userId, string couponCode)
         {
-            //var cartHeader = await FetchAsync(ch => ch.UserId == userId);
-            //double total = 0;
-            //double discount = 0;
+            var cartItems = await FetchAllAsync(ch => ch.UserId == userId);
+            double total = 0;
+            double discount = 0;
+            var couponResponse = new { Total = total, Discount = discount, Status = false };
 
-            //if (cartHeader != null)
-            //{
-            //    var coupon = await _db.Coupons.FirstOrDefaultAsync(c => c.Code == couponCode);
-            //    if (coupon != null) 
-            //    {
-            //        // TODO: check coupon date is valid & coupon used time is valid
-            //        foreach (var item in cartHeader.Carts)
-            //        {
-            //            total += item.Product.Amount * item.Quantity;
-            //        }
+            if (cartItems != null)
+            {
+                var coupon = await _db.Coupons.FirstOrDefaultAsync(c => c.Code == couponCode);
+                if (coupon != null)
+                {
+                    // TODO: check coupon date is valid & coupon used time is valid
+                    foreach (var item in cartItems)
+                    {
+                        total += item.Product.Amount * item.Quantity;
+                    }
 
-            //        if (coupon.Type == Coupon.CouponType.Percentage)
-            //        {
-            //            discount = (coupon.CoupleValue / 100) * total;
-            //        }
-            //        else
-            //        {
-            //            if (coupon.CoupleValue <= total)
-            //            {
-            //                discount = total - coupon.CoupleValue;
-            //            }
-            //        }
-
-            //        return true;
-            //    }
-            //}
-
-            return false;
+                    if (coupon.Type == Coupon.CouponType.Percentage)
+                    {
+                        discount = (coupon.CoupleValue / 100) * total;
+                    }
+                    else
+                    {
+                        if (coupon.CoupleValue <= total)
+                        {
+                            discount = total - coupon.CoupleValue;
+                        }
+                    }
+                    couponResponse = new { Total = total, Discount = discount, Status = true };
+                }
+            }
+            return couponResponse;
         }
     }
 }

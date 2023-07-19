@@ -21,7 +21,6 @@ namespace Tambolo
 
             CreateMap<Cart, CartResponse>().ReverseMap();
             CreateMap<CartRequest, Cart>();
-            CreateMap<CartUpdateRequest, Cart>();
             CreateMap<CartRequest, CartResponse>();
 
             CreateMap<Coupon, CouponResponse>().ReverseMap();

@@ -227,18 +227,18 @@ namespace Tambolo.Controllers
 
                 var userId = "10a0d54f-5738-4535-a830-e9339a71b8ed";
 
-                bool isDeleted = await _cartRepository.ApplyCouponAsync(userId, code);
+                var couponResponse = await _cartRepository.ApplyCouponAsync(userId, code);
 
-                if (!isDeleted)
+                if (!couponResponse.status)
                 {
                     _response.Status = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
-                    _response.Message = new List<string> { "Cart Item not found" };
+                    _response.Message = new List<string> { "Coupon not found" };
                     return NotFound(_response);
                 }
 
-                _response.Status = HttpStatusCode.NoContent;
-                _response.Message = new List<string> { "Cart Item deleted successfully!" };
+                _response.Data = couponResponse;
+                _response.Message = new List<string> { "Coupon applied!" };
             }
             catch (Exception ex)
             {
